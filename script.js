@@ -131,3 +131,18 @@ canvas.addEventListener("mousemove", e => {
   mousePosition.x = e.layerX;
   mousePosition.y = e.layerY;
 });
+
+var keyDownLast = {};
+
+document.addEventListener("keydown", e => {
+  // ignore repeated event (ex. holding key)
+  keyDownLast[e.code] = keyDownLast[e.code] || e;
+});
+
+document.addEventListener("keyup", e => {
+  let t0 = keyDownLast[e.code].timeStamp;
+  let t1 = e.timeStamp;
+  let dt = t1 - t0;
+  console.log(e.code, dt);
+  delete keyDownLast[e.code];
+});
