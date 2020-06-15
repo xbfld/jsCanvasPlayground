@@ -7,7 +7,6 @@
 
 const canvas = document.getElementById("canvas");
 const fps = 30;
-var player = { x: canvas.width / 2, y: canvas.height / 2 };
 var userDrawingMode = true;
 var mouseDownLast = {};
 var mousePosition = {};
@@ -21,43 +20,6 @@ var updateEvent = setInterval(function() {
   }
   draw();
 }, 1000 / fps);
-
-// var updateObjects = [];
-// var drawableObjects = [];
-
-// function Gamebody(x = 0, y = 0) {
-//   this.x = x;
-//   this.y = y;
-//   this.vx = 0;
-//   this.vy = 0;
-//   this.ax = 0;
-//   this.ay = 0;
-// }
-
-// function Player(x = 0, y = 0, w = 30, h = 50) {
-//   Gamebody.call(this, x, y);
-//   this.w = w;
-//   this.h = h;
-
-//   //relative drawing origin
-//   this.relx = -w / 2;
-//   this.rely = -h;
-
-//   this.update = function(ticks) {
-//     this.x += ticks;
-//   };
-
-//   this.drawbody = [];
-//   this.draw = function() {
-//     let ctx = canvas.getContext("2d");
-//     ctx.fillStyle = "rgba(0, 200, 0, 0.5)";
-//     ctx.fillRect(this.x + this.relx, this.y + this.rely, this.w, this.h);
-//   };
-// }
-
-// var player = new Player(50, 100, 30, 50);
-// drawableObjects.push(player);
-// updateObjects.push(player);
 
 function draw() {
   let ctx = canvas.getContext("2d");
@@ -84,12 +46,15 @@ function draw() {
     b.draw();
   });
 
+  player.draw();
+
   if (isMouseDown) {
     let [x0, y0] = [mouseDownLast.x, mouseDownLast.y];
     let [x1, y1] = [mousePosition.x, mousePosition.y];
     new Box(x0, y0, x1, y1, {
       fillStyle: "transparent",
-      strokeStyle: "#aaa"
+      strokeStyle: "#ccc",
+      setLineDash: [9, 3, 3, 3, 3, 3]
     }).draw();
     drawCrosshair(x0, y0, true);
     drawCrosshair(x1, y1, false);
@@ -123,7 +88,21 @@ function Box(x0, y0, x1, y1, args = {}) {
   };
 }
 
-function gameUpdate() {}
+var player = { x: canvas.width / 2, y: canvas.height / 2, w: 30, h: 60 };
+player.body = new Box();
+player.update = function() {
+  player.body.x0 = player.x - player.w / 2;
+  player.body.x1 = player.x + player.w / 2;
+  player.body.y0 = player.y - player.h;
+  player.body.y1 = player.y;
+};
+player.draw = function() {
+  player.body.draw();
+};
+
+function gameUpdate() {
+  player.update();
+}
 
 canvas.addEventListener("mousedown", e => {
   isMouseDown = true;
