@@ -61,24 +61,13 @@ var updateEvent = setInterval(function() {
 
 function draw() {
   let ctx = canvas.getContext("2d");
-  ctx.fillStyle = "rgb(30, 50, 60)";
+  ctx.fillStyle = "rgb(104, 153, 185)"; // Pythagorean triple
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "rgb(200,0,0)";
-  ctx.fillRect(10, 10, 50, 50);
-
-  ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
-  ctx.fillRect(30, 30, 50, 50);
-
-  ctx.clearRect(45, 25, 20, 20);
-  
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.5)"
-  ctx.strokeRect(25, 45, 200, 200);
 
   function drawCrosshair(x, y, ghost) {
     ctx.strokeStyle = ghost
-      ? "rgba(255, 255, 255, 0.5)"
-      : "rgba(0, 255, 0, 0.5)";
+      ? "rgba(255, 255, 255, 0.8)"
+      : "rgba(0, 255, 0, 0.8)";
     ctx.beginPath();
     ctx.moveTo(x, y + 5);
     ctx.lineTo(x, y + 15);
@@ -90,17 +79,21 @@ function draw() {
     ctx.lineTo(x - 15, y);
     ctx.stroke();
   }
-  if (isMouseDown) {
-    let [x0, y0] = [mouseDownLast.x, mouseDownLast.y];
-    drawCrosshair(x0, y0, true);
-    let [x1, y1] = [mousePosition.x, mousePosition.y];
-    drawCrosshair(x1, y1, false);
-    (new Box(x0,y0,x1,y1)).draw()
-  }
 
   boxs.forEach(b => {
     b.draw();
   });
+
+  if (isMouseDown) {
+    let [x0, y0] = [mouseDownLast.x, mouseDownLast.y];
+    let [x1, y1] = [mousePosition.x, mousePosition.y];
+    new Box(x0, y0, x1, y1, {
+      fillStyle: "transparent",
+      strokeStyle: "#aaa"
+    }).draw();
+    drawCrosshair(x0, y0, true);
+    drawCrosshair(x1, y1, false);
+  }
 }
 
 var boxs = [];
@@ -109,11 +102,24 @@ function Box(x0, y0, x1, y1, args = {}) {
   this.y0 = y0;
   this.x1 = x1;
   this.y1 = y1;
-  this.fillStyle = args.fillStyle | "rgb(0,200,0)";
+  this.fillStyle = args.fillStyle || "magenta";
+  this.strokeStyle = args.strokeStyle || "transparent";
+  this.setLineDash = args.setLineDash || [];
   this.draw = function() {
     let ctx = canvas.getContext("2d");
     ctx.fillStyle = this.fillStyle;
-    ctx.fillRect(this.x0, this.y0, this.x1 - this.x0, this.y1 - this.y0);
+    let [x0, y1, w, h] = [
+      this.x0,
+      this.y0,
+      this.x1 - this.x0,
+      this.y1 - this.y0
+    ];
+    ctx.fillRect(x0, y1, w, h);
+    ctx.save();
+    ctx.setLineDash(this.setLineDash);
+    ctx.strokeStyle = this.strokeStyle;
+    ctx.strokeRect(x0, y1, w, h);
+    ctx.restore();
   };
 }
 
@@ -130,7 +136,14 @@ canvas.addEventListener("mouseup", e => {
   let [x1, y1] = [e.layerX, e.layerY];
   let [x0, y0] = [mouseDownLast.x, mouseDownLast.y];
   if (userDrawingMode) {
-    boxs.push(new Box(x0, y0, x1, y1));
+    let f = Math.random() * 360;
+    let s = (f + 180) % 360;
+    boxs.push(
+      new Box(x0, y0, x1, y1, {
+        fillStyle: "hsl(" + f + ", 100%, 50%)",
+        strokeStyle: "hsl(" + s + ", 100%, 50%)"
+      })
+    );
   }
   console.log("mouseup", e.layerX, e.layerY);
 });
