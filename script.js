@@ -6,16 +6,18 @@
 // V
 
 const canvas = document.getElementById("canvas");
-const fps = 30;
+const fps = 60;
 var userDrawingMode = true;
 var mouseDownLast = {};
 var mousePosition = {};
 var isMouseDown = false;
 
-var lastUpdate = +new Date();
+const nowTick = function() {
+  return (+new Date() * fps) / 1000;
+};
+var lastTick = nowTick();
 var updateEvent = setInterval(function() {
-  let interval = +new Date() - lastUpdate;
-  for (let ticks = Math.floor((interval / 1000) * fps); ticks > 0; ticks--) {
+  for (let now = nowTick(); lastTick < now; lastTick++) {
     gameUpdate();
   }
   draw();
@@ -89,8 +91,19 @@ function Box(x0, y0, x1, y1, args = {}) {
 }
 
 var player = { x: canvas.width / 2, y: canvas.height / 2, w: 30, h: 60 };
+player = Object.assign({}, player, { vx: 0, vy: 0, ax: 0, ay: 0 });
 player.body = new Box();
 player.update = function() {
+  let { vx: vx, vy: vy, ax: ax, ay: ay } = player;
+
+  let axt = ax / fps;
+  player.x += (vx + 0.5 * axt) / fps;
+  player.vx += axt;
+
+  let ayt = ay / fps;
+  player.y += (vy + 0.5 * ayt) / fps;
+  player.vy += ayt;
+
   player.body.x0 = player.x - player.w / 2;
   player.body.x1 = player.x + player.w / 2;
   player.body.y0 = player.y - player.h;
@@ -136,13 +149,54 @@ var keyDownLast = {};
 
 document.addEventListener("keydown", e => {
   // ignore repeated event (ex. holding key)
-  keyDownLast[e.code] = keyDownLast[e.code] || e;
+  keyDownLast[e.code] =
+    keyDownLast[e.code] ||
+    (function() {
+      switch (e.code) {
+        case "KeyD":
+        case "ArrowRight":
+          player.vx += 100;
+          break;
+        case "KeyA":
+        case "ArrowLeft":
+          player.vx -= 100;
+          break;
+        case "KeyW":
+        case "ArrowUp":
+          player.vy -= 100;
+          break;
+        case "KeyS":
+        case "ArrowDown":
+          player.vy += 100;
+          break;
+      }
+      return e;
+    })();
 });
 
 document.addEventListener("keyup", e => {
-  let t0 = keyDownLast[e.code].timeStamp;
-  let t1 = e.timeStamp;
-  let dt = t1 - t0;
-  console.log(e.code, dt);
+  // let t0 = keyDownLast[e.code].timeStamp;
+  // let t1 = e.timeStamp;
+  // let dt = t1 - t0;
+  // console.log(e.code, dt);
+
+  switch (e.code) {
+    case "KeyD":
+    case "ArrowRight":
+      player.vx -= 100;
+      break;
+    case "KeyA":
+    case "ArrowLeft":
+      player.vx += 100;
+      break;
+    case "KeyW":
+    case "ArrowUp":
+      player.vy += 100;
+      break;
+    case "KeyS":
+    case "ArrowDown":
+      player.vy -= 100;
+      break;
+  }
   delete keyDownLast[e.code];
 });
