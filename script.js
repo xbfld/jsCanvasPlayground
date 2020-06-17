@@ -94,15 +94,33 @@ var player = { x: canvas.width / 2, y: canvas.height / 2, w: 30, h: 60 };
 player = Object.assign({}, player, { vx: 0, vy: 0, ax: 0, ay: 0 });
 player.body = new Box();
 player.update = function() {
-  let { vx: vx, vy: vy, ax: ax, ay: ay } = player;
+  let { x: x, y: y, vx: vx, vy: vy, ax: ax, ay: ay } = player;
 
   let axt = ax / fps;
-  player.x += (vx + 0.5 * axt) / fps;
-  player.vx += axt;
+  let _x = x + (vx + 0.5 * axt) / fps;
+  let _vx = vx + axt;
 
   let ayt = ay / fps;
-  player.y += (vy + 0.5 * ayt) / fps;
-  player.vy += ayt;
+  let _y = y + (vy + 0.5 * ayt) / fps;
+  let _vy = vy + ayt;
+
+  
+  boxs.forEach(box => {
+    if (
+      Math.sign(box.y0 - _y) + Math.sign(box.y1 - _y) === 0 &&
+      Math.sign(box.x0 - _x) + Math.sign(box.x1 - _x) === 0
+    ) {
+      _y = Math.min(box.y0, box.y1);
+    }
+  });
+  if (_y > canvas.height) {
+    _y = canvas.height;
+  }
+
+  player.x = _x;
+  player.y = _y;
+  player.vx = _vx;
+  player.vy = _vy;
 
   player.body.x0 = player.x - player.w / 2;
   player.body.x1 = player.x + player.w / 2;
