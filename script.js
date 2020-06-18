@@ -104,7 +104,6 @@ player.update = function() {
   let _y = y + (vy + 0.5 * ayt) / fps;
   let _vy = vy + ayt;
 
-  
   boxs.forEach(box => {
     if (
       Math.sign(box.y0 - _y) + Math.sign(box.y1 - _y) === 0 &&
@@ -133,8 +132,17 @@ player.draw = function() {
 
 function gameUpdate() {
   player.update();
+
+  let infotext = "Info text is not setted on script.js";
+  infotext = "Pressed keys:\n";
+  for (let [k, v] of Object.entries(keyDownLast)) {
+    infotext += "" + k + ": " + v.timeStamp + "\n";
+  }
+
+  document.getElementById("info").innerText = infotext;
 }
 
+// EventListener
 canvas.addEventListener("mousedown", e => {
   isMouseDown = true;
   mouseDownLast.x = e.layerX;
@@ -164,32 +172,43 @@ canvas.addEventListener("mousemove", e => {
 });
 
 var keyDownLast = {};
+var keyUpLast = {};
+function isKeyHolding(keycode) {
+  let c = keycode;
+  let kdl = keyDownLast;
+  let kul = keyUpLast;
+  
+  return (
+    kdl[c] &&
+    (!kul[c] || kul[c].timeStamp < kdl[c].timeStamp)
+  );
+}
 
 document.addEventListener("keydown", e => {
   // ignore repeated event (ex. holding key)
-  keyDownLast[e.code] =
-    keyDownLast[e.code] ||
-    (function() {
-      switch (e.code) {
-        case "KeyD":
-        case "ArrowRight":
-          player.vx += 100;
-          break;
-        case "KeyA":
-        case "ArrowLeft":
-          player.vx -= 100;
-          break;
-        case "KeyW":
-        case "ArrowUp":
-          player.vy -= 100;
-          break;
-        case "KeyS":
-        case "ArrowDown":
-          player.vy += 100;
-          break;
-      }
-      return e;
-    })();
+  if (isKeyHolding(e.code)) {
+    return;
+  }
+  console.log('wow')
+  keyDownLast[e.code] = e;
+  switch (e.code) {
+    case "KeyD":
+    case "ArrowRight":
+      player.vx += 100;
+      break;
+    case "KeyA":
+    case "ArrowLeft":
+      player.vx -= 100;
+      break;
+    case "KeyW":
+    case "ArrowUp":
+      player.vy -= 100;
+      break;
+    case "KeyS":
+    case "ArrowDown":
+      player.vy += 100;
+      break;
+  }
 });
 
 document.addEventListener("keyup", e => {
@@ -198,6 +217,7 @@ document.addEventListener("keyup", e => {
   // let dt = t1 - t0;
   // console.log(e.code, dt);
 
+  keyUpLast[e.code] = e;
   switch (e.code) {
     case "KeyD":
     case "ArrowRight":
@@ -216,5 +236,4 @@ document.addEventListener("keyup", e => {
       player.vy -= 100;
       break;
   }
-  delete keyDownLast[e.code];
 });
