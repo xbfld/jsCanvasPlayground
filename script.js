@@ -177,36 +177,72 @@ function isKeyHolding(keycode) {
   let c = keycode;
   let kdl = keyDownLast;
   let kul = keyUpLast;
-  
-  return (
-    kdl[c] &&
-    (!kul[c] || kul[c].timeStamp < kdl[c].timeStamp)
-  );
+
+  return kdl[c] && (!kul[c] || kul[c].timeStamp < kdl[c].timeStamp);
 }
+
+var ctr, controller;
+ctr = controller = { vx1: 0, vx2: 0, vy1: 0, vy2: 0, speed: 100 };
+ctr.startRight = function() {
+  ctr.vx1 = +ctr.speed;
+  ctr.final();
+};
+ctr.startLeft = function() {
+  ctr.vx2 = -ctr.speed;
+  ctr.final();
+};
+ctr.startUp = function() {
+  ctr.vy1 = -ctr.speed;
+  ctr.final();
+};
+ctr.startDown = function() {
+  ctr.vy2 = +ctr.speed;
+  ctr.final();
+};
+ctr.stopRight = function(){
+  ctr.vx1=0
+  ctr.final();
+}
+ctr.stopLeft = function(){
+  ctr.vx2=0
+  ctr.final();
+}
+ctr.stopUp = function() {
+  ctr.vy1 = 0
+  ctr.final();
+};
+ctr.stopDown = function() {
+  ctr.vy2 = 0
+  ctr.final();
+};
+ctr.final = function() {
+  player.vx = ctr.vx1 + ctr.vx2;
+  player.vy = ctr.vy1 + ctr.vy2;
+};
 
 document.addEventListener("keydown", e => {
   // ignore repeated event (ex. holding key)
   if (isKeyHolding(e.code)) {
     return;
   }
-  console.log('wow')
+  console.log("wow");
   keyDownLast[e.code] = e;
   switch (e.code) {
     case "KeyD":
     case "ArrowRight":
-      player.vx += 100;
+      ctr.startRight()
       break;
     case "KeyA":
     case "ArrowLeft":
-      player.vx -= 100;
+      ctr.startLeft()
       break;
     case "KeyW":
     case "ArrowUp":
-      player.vy -= 100;
+      ctr.startUp()
       break;
     case "KeyS":
     case "ArrowDown":
-      player.vy += 100;
+      ctr.startDown()
       break;
   }
 });
@@ -221,19 +257,19 @@ document.addEventListener("keyup", e => {
   switch (e.code) {
     case "KeyD":
     case "ArrowRight":
-      player.vx -= 100;
+      ctr.stopRight()
       break;
     case "KeyA":
     case "ArrowLeft":
-      player.vx += 100;
+      ctr.stopLeft()
       break;
     case "KeyW":
     case "ArrowUp":
-      player.vy += 100;
+      ctr.stopUp()
       break;
     case "KeyS":
     case "ArrowDown":
-      player.vy -= 100;
+      ctr.stopDown()
       break;
   }
 });
